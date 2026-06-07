@@ -27,15 +27,73 @@ A comparação foi realizada por meio de um benchmark automatizado em Python, ut
 - Cypher
 - SQL
 - Pandas
+- NumPy
 - Dataset público da Olist
 
 ## Dataset
 
-O projeto utiliza o conjunto de dados público:
+Os arquivos de dados utilizados neste projeto pertencem ao conjunto público:
 
 **Brazilian E-Commerce Public Dataset by Olist**
 
-Esse dataset contém dados reais anonimizados de pedidos realizados em uma plataforma de e-commerce brasileira, incluindo informações sobre clientes, pedidos, produtos, vendedores, pagamentos, avaliações e localização geográfica.
+Por serem arquivos grandes, os dados não estão incluídos diretamente neste repositório. Para executar o projeto, é necessário baixar o dataset manualmente no Kaggle:
+
+https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+
+Após o download, extraia os arquivos `.csv` e coloque todos eles dentro da pasta `data/`, na raiz do projeto.
+
+A pasta `data/` deve conter os seguintes arquivos:
+
+```text
+data/
+├── olist_customers_dataset.csv
+├── olist_geolocation_dataset.csv
+├── olist_order_items_dataset.csv
+├── olist_order_payments_dataset.csv
+├── olist_order_reviews_dataset.csv
+├── olist_orders_dataset.csv
+├── olist_products_dataset.csv
+├── olist_sellers_dataset.csv
+└── product_category_name_translation.csv
+```
+
+A presença desses arquivos é necessária para que os scripts de carga consigam localizar corretamente os dados da Olist.
+
+## Estrutura do projeto
+
+A estrutura esperada do projeto é:
+
+```text
+PROJETO_TCC2/
+├── data/
+│   ├── olist_customers_dataset.csv
+│   ├── olist_geolocation_dataset.csv
+│   ├── olist_order_items_dataset.csv
+│   ├── olist_order_payments_dataset.csv
+│   ├── olist_order_reviews_dataset.csv
+│   ├── olist_orders_dataset.csv
+│   ├── olist_products_dataset.csv
+│   ├── olist_sellers_dataset.csv
+│   └── product_category_name_translation.csv
+│
+├── src/
+│   ├── benchmark.py
+│   ├── carga_neo4j.py
+│   ├── carga_postgres.py
+│   ├── resultado_final_neo4j.csv
+│   └── resultado_final_postgres.csv
+│
+├── requirements.txt
+└── README.md
+```
+
+Os scripts principais estão na pasta `src/`:
+
+- `carga_postgres.py`: realiza a carga dos dados no PostgreSQL;
+- `carga_neo4j.py`: realiza a carga dos dados no Neo4j;
+- `benchmark.py`: executa as consultas de benchmark nos dois bancos;
+- `resultado_final_postgres.csv`: arquivo gerado com os resultados do PostgreSQL;
+- `resultado_final_neo4j.csv`: arquivo gerado com os resultados do Neo4j.
 
 ## Consultas avaliadas
 
@@ -102,6 +160,83 @@ Por outro lado, o Neo4j apresentou melhor desempenho em consultas de maior profu
 
 Dessa forma, os resultados sugerem que o modelo relacional permanece altamente eficiente para consultas de baixa profundidade em bases de tamanho moderado, enquanto o modelo de grafos se torna especialmente adequado para consultas que exigem múltiplos saltos lógicos, descoberta de caminhos e análise de redes altamente conectadas.
 
+## Requisitos
+
+Antes de executar o projeto, é necessário ter instalado:
+
+- Python 3.10 ou superior;
+- PostgreSQL;
+- Neo4j;
+- Git.
+
+As dependências Python estão listadas no arquivo `requirements.txt`:
+
+```txt
+pandas
+numpy
+psycopg2-binary
+neo4j
+```
+
+## Configuração dos bancos de dados
+
+O projeto utiliza dois bancos de dados:
+
+- PostgreSQL;
+- Neo4j.
+
+As credenciais padrão utilizadas pelos scripts são:
+
+```python
+POSTGRES_CONFIG = {
+    "host": "localhost",
+    "database": "olist_db",
+    "user": "postgres",
+    "password": "admin123",
+    "port": "5432"
+}
+
+NEO4J_CONFIG = {
+    "uri": "bolt://localhost:7687",
+    "user": "neo4j",
+    "password": "admin123"
+}
+```
+
+Caso o seu ambiente utilize outro usuário, senha ou nome de banco, você pode alterar as credenciais por variáveis de ambiente.
+
+### Variáveis de ambiente aceitas
+
+```env
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=olist_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=admin123
+
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=admin123
+```
+
+Se nenhuma variável de ambiente for definida, os scripts utilizarão os valores padrão apresentados acima.
+
+## Observação sobre caminhos dos arquivos
+
+Os scripts foram configurados para usar caminhos relativos.
+
+A estrutura recomendada é manter a pasta `data/` na raiz do projeto e os scripts dentro da pasta `src/`.
+
+Exemplo:
+
+```text
+PROJETO_TCC2/
+├── data/
+└── src/
+```
+
+Com essa configuração, os scripts localizam automaticamente os arquivos CSV da Olist a partir da pasta raiz do projeto, sem necessidade de editar caminhos absolutos no código.
+
 ## Como executar
 
 ### 1. Clonar o repositório
@@ -111,7 +246,15 @@ git clone https://github.com/seu-usuario/nome-do-repositorio.git
 cd nome-do-repositorio
 ```
 
-### 2. Criar ambiente virtual
+### 2. Baixar o dataset
+
+Baixe o dataset da Olist no Kaggle:
+
+https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+
+Depois, extraia os arquivos `.csv` e coloque todos eles dentro da pasta `data/`.
+
+### 3. Criar ambiente virtual
 
 ```bash
 python -m venv venv
@@ -129,44 +272,66 @@ No Linux/macOS:
 source venv/bin/activate
 ```
 
-### 3. Instalar dependências
+### 4. Instalar dependências
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configurar bancos de dados
+### 5. Preparar o banco PostgreSQL
 
-Configure as credenciais do PostgreSQL e do Neo4j conforme os arquivos de configuração ou variáveis de ambiente utilizadas no projeto.
+Antes de executar a carga, crie o banco de dados `olist_db` no PostgreSQL.
 
-Exemplo:
+Também é necessário criar previamente as tabelas esperadas pelos scripts, conforme o modelo relacional desenvolvido no projeto.
 
-```env
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=olist
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=sua_senha
+As tabelas utilizadas pelo script de carga são:
 
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=sua_senha
-```
+- `clientes`
+- `produtos`
+- `vendedores`
+- `pedidos`
+- `itens_pedido`
 
-### 5. Executar ETL
+### 6. Executar a carga no PostgreSQL
 
 ```bash
-python scripts/etl_postgresql.py
-python scripts/etl_neo4j.py
+python src/carga_postgres.py
 ```
 
-### 6. Executar benchmark
+### 7. Executar a carga no Neo4j
+
+Certifique-se de que o Neo4j esteja em execução e acessível em:
+
+```text
+bolt://localhost:7687
+```
+
+Depois execute:
 
 ```bash
-python scripts/benchmark.py
+python src/carga_neo4j.py
 ```
 
-Os resultados serão salvos na pasta de resultados definida no projeto.
+### 8. Executar o benchmark
+
+Para executar o benchmark no PostgreSQL:
+
+```bash
+python src/benchmark.py postgres
+```
+
+Para executar o benchmark no Neo4j:
+
+```bash
+python src/benchmark.py neo4j
+```
+
+Ao final da execução, os resultados serão salvos em arquivos `.csv`, como:
+
+```text
+src/resultado_final_postgres.csv
+src/resultado_final_neo4j.csv
+```
 
 ## Documentação
 
