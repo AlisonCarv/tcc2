@@ -1,4 +1,3 @@
-````markdown
 # Análise Comparativa de Bancos de Dados Relacionais e Orientados a Grafos para Sistemas de Recomendação em E-commerce
 
 Este repositório contém os códigos, scripts, consultas, modelos de dados e resultados experimentais desenvolvidos para o Trabalho de Conclusão de Curso intitulado:
@@ -431,4 +430,3 @@ CARVALHO, Álison Christian Rebouças Vidal de. **Análise Comparativa de Bancos
 ## Licença
 
 Este projeto foi desenvolvido para fins acadêmicos. O uso, reprodução ou adaptação dos códigos e materiais deve citar a autoria original.
-````
