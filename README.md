@@ -1,48 +1,55 @@
-# Comparação entre Modelagem Relacional e Modelagem em Grafos para Consultas de Recomendação em E-commerce
+````markdown
+# Análise Comparativa de Bancos de Dados Relacionais e Orientados a Grafos para Sistemas de Recomendação em E-commerce
 
-Este repositório contém os códigos, scripts, consultas, modelos de dados e documentação complementar desenvolvidos para o Trabalho de Conclusão de Curso intitulado:
+Este repositório contém os códigos, scripts, consultas, modelos de dados e resultados experimentais desenvolvidos para o Trabalho de Conclusão de Curso intitulado:
 
-**Comparação Prática entre Modelagem Relacional e Modelagem em Grafos para Consultas de Recomendação em E-commerce**
+**Análise Comparativa de Bancos de Dados Relacionais e Orientados a Grafos para Sistemas de Recomendação em E-commerce**
 
-O objetivo do projeto é comparar, de forma prática, o desempenho e a expressividade entre uma abordagem relacional, utilizando **PostgreSQL**, e uma abordagem orientada a grafos, utilizando **Neo4j**, aplicadas a consultas de recomendação em um cenário de comércio eletrônico.
+O objetivo do projeto é comparar o desempenho e a expressividade de consultas em dois modelos de banco de dados aplicados a um cenário de recomendação em e-commerce:
+
+- **Modelo A:** modelo relacional implementado no PostgreSQL;
+- **Modelo B:** modelo orientado a grafos implementado no Neo4j.
+
+A comparação foi realizada por meio de scripts em Python, utilizando consultas equivalentes em SQL e Cypher sobre o conjunto de dados público da Olist.
+
+---
 
 ## Visão geral
 
-Sistemas de recomendação em e-commerce dependem da análise de relações entre clientes, pedidos, produtos, vendedores e categorias. Tradicionalmente, essas informações são armazenadas em bancos relacionais, nos quais as conexões são reconstruídas por meio de junções entre tabelas.
+Sistemas de recomendação em e-commerce dependem da análise de relações entre clientes, pedidos, produtos, vendedores e categorias. No modelo relacional, essas relações são representadas por tabelas, chaves primárias, chaves estrangeiras e operações de junção. No modelo orientado a grafos, as mesmas relações são representadas por nós, relacionamentos e propriedades.
 
-Em contrapartida, bancos orientados a grafos representam essas conexões de forma explícita, permitindo consultas baseadas em travessias entre nós e relacionamentos.
+Este projeto implementa os dois modelos a partir da mesma base de dados e executa um benchmark com consultas de recomendação e análise de relacionamento. Os resultados permitem observar em quais cenários o PostgreSQL apresenta melhor desempenho e em quais situações o Neo4j se mostra mais adequado.
 
-Este projeto implementa e compara dois protótipos equivalentes:
-
-- **Protótipo A:** modelo relacional em PostgreSQL, com tabelas normalizadas e índices B-Tree;
-- **Protótipo B:** modelo de grafo em Neo4j, com nós, relacionamentos e propriedades no padrão *Labeled Property Graph*.
-
-A comparação foi realizada por meio de um benchmark automatizado em Python, utilizando consultas representativas de sistemas de recomendação.
+---
 
 ## Tecnologias utilizadas
 
 - Python
 - PostgreSQL
 - Neo4j
-- Cypher
 - SQL
-- Pandas
+- Cypher
+- pandas
 - NumPy
+- psycopg2
+- neo4j-driver
 - Dataset público da Olist
+
+---
 
 ## Dataset
 
-Os arquivos de dados utilizados neste projeto pertencem ao conjunto público:
+O projeto utiliza o conjunto público:
 
 **Brazilian E-Commerce Public Dataset by Olist**
 
-Por serem arquivos grandes, os dados não estão incluídos diretamente neste repositório. Para executar o projeto, é necessário baixar o dataset manualmente no Kaggle:
+O dataset está disponível no Kaggle:
 
 https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 
-Após o download, extraia os arquivos `.csv` e coloque todos eles dentro da pasta `data/`, na raiz do projeto.
+Os arquivos do dataset não estão incluídos neste repositório. Para executar o projeto, baixe o dataset no Kaggle, extraia os arquivos `.csv` e coloque-os na pasta `data/`, na raiz do projeto.
 
-A pasta `data/` deve conter os seguintes arquivos:
+A pasta `data/` deve conter:
 
 ```text
 data/
@@ -57,7 +64,9 @@ data/
 └── product_category_name_translation.csv
 ```
 
-A presença desses arquivos é necessária para que os scripts de carga consigam localizar corretamente os dados da Olist.
+Os scripts deste projeto utilizam principalmente os arquivos de clientes, pedidos, itens de pedido, produtos e vendedores.
+
+---
 
 ## Estrutura do projeto
 
@@ -79,86 +88,118 @@ PROJETO_TCC2/
 ├── src/
 │   ├── benchmark.py
 │   ├── carga_neo4j.py
-│   ├── carga_postgres.py
-│   ├── resultado_final_neo4j.csv
-│   └── resultado_final_postgres.csv
+│   └── carga_postgres.py
 │
+├── resultado_final_neo4j.csv
+├── resultado_final_postgres.csv
 ├── requirements.txt
 └── README.md
 ```
 
-Os scripts principais estão na pasta `src/`:
+Os arquivos `resultado_final_neo4j.csv` e `resultado_final_postgres.csv` são gerados após a execução do benchmark. Dependendo do diretório em que o comando for executado, eles podem ser salvos na raiz do projeto ou no diretório de execução.
 
-- `carga_postgres.py`: realiza a carga dos dados no PostgreSQL;
-- `carga_neo4j.py`: realiza a carga dos dados no Neo4j;
-- `benchmark.py`: executa as consultas de benchmark nos dois bancos;
-- `resultado_final_postgres.csv`: arquivo gerado com os resultados do PostgreSQL;
-- `resultado_final_neo4j.csv`: arquivo gerado com os resultados do Neo4j.
+---
 
-## Consultas avaliadas
+## Scripts principais
 
-O benchmark foi estruturado a partir de cinco consultas principais:
-
-| Consulta | Descrição |
+| Script | Função |
 |---|---|
-| Q1 | Filtragem colaborativa simples |
-| Q2 | Detecção de coocorrência de produtos no mesmo pedido |
-| Q3 | Recomendação híbrida por perfil, geografia e categoria |
-| Q4 | Teste de estresse com múltiplos saltos lógicos |
-| Q5 | Descoberta de menor caminho entre entidades |
+| `carga_postgres.py` | Lê os arquivos CSV da Olist e carrega os dados no PostgreSQL. |
+| `carga_neo4j.py` | Lê os arquivos CSV da Olist, cria nós e relacionamentos no Neo4j e aplica restrições de unicidade. |
+| `benchmark.py` | Executa as consultas em PostgreSQL ou Neo4j, mede os tempos de resposta e gera arquivos CSV com os resultados. |
 
-Essas consultas foram implementadas em SQL para o PostgreSQL e em Cypher para o Neo4j, respeitando a lógica de modelagem de cada paradigma.
+---
 
-## Modelagem relacional
+## Modelo relacional no PostgreSQL
 
-No PostgreSQL, os dados foram estruturados em tabelas normalizadas, preservando entidades como clientes, pedidos, produtos, vendedores e itens de pedido. As associações são representadas por chaves primárias e estrangeiras.
+No PostgreSQL, os dados são organizados em tabelas relacionadas por identificadores. As principais tabelas utilizadas são:
 
-Foram criados índices B-Tree sobre chaves e atributos utilizados em filtros, permitindo que o banco relacional executasse buscas indexadas antes das operações de junção.
+- `clientes`
+- `pedidos`
+- `produtos`
+- `vendedores`
+- `itens_pedido`
 
-Essa modelagem representa a abordagem tradicional de bancos relacionais, na qual os relacionamentos entre entidades são reconstruídos em tempo de consulta por meio de operações de `JOIN`.
+As relações entre as tabelas são mantidas por identificadores como:
 
-## Modelagem em grafos
+- `customer_id`
+- `order_id`
+- `product_id`
+- `seller_id`
 
-No Neo4j, as entidades principais foram representadas como nós, como:
+A tabela `itens_pedido` atua como estrutura associativa entre pedidos, produtos e vendedores. Esse modelo permite executar as consultas em SQL por meio de operações de junção entre as tabelas.
+
+---
+
+## Modelo de grafo no Neo4j
+
+No Neo4j, as entidades principais são representadas como nós:
 
 - `:Cliente`
 - `:Pedido`
 - `:Produto`
 - `:Vendedor`
 
-As associações foram representadas como relacionamentos, como:
+As associações entre essas entidades são representadas por relacionamentos direcionados:
 
-- `[:FEZ_PEDIDO]`
-- `[:CONTEM]`
-- `[:VENDIDO_POR]`
-- `[:PERTENCE_A]`
+- `[:FEZ_PEDIDO]`: conecta um cliente a um pedido realizado;
+- `[:CONTEM]`: conecta um pedido aos produtos contidos nele;
+- `[:VENDIDO_POR]`: conecta um produto ao vendedor correspondente.
 
-A entidade associativa `itens_pedido`, presente no modelo relacional, foi incorporada ao relacionamento `[:CONTEM]`, preservando seus atributos como propriedades.
+Atributos da associação entre pedido e produto, como `preco`, são armazenados como propriedades do relacionamento `[:CONTEM]`.
 
-Essa modelagem permite que as consultas percorram diretamente os relacionamentos armazenados no grafo, favorecendo cenários de recomendação baseados em múltiplas conexões entre entidades.
+Esse modelo permite que consultas em Cypher percorram diretamente os relacionamentos armazenados no grafo.
 
-## Benchmark
+---
 
-O benchmark foi desenvolvido em Python e executa as consultas nos dois bancos de dados, registrando os tempos de resposta para posterior comparação.
+## Consultas avaliadas
 
-Entre os cuidados metodológicos adotados estão:
+O benchmark foi estruturado com cinco grupos de consultas:
 
-- execução de ciclos de aquecimento;
-- amostragem dinâmica de chaves;
-- repetição controlada das consultas;
-- tratamento de timeouts;
-- coleta de métricas de tempo de resposta;
-- comparação quantitativa e qualitativa entre SQL e Cypher.
+| Consulta | Objetivo |
+|---|---|
+| `Q1` | Recomendar produtos comprados por clientes que também compraram um produto de referência. |
+| `Q2` | Identificar produtos frequentemente comprados no mesmo pedido. |
+| `Q3` | Recomendar produtos com base em clientes da mesma cidade e categorias já consumidas. |
+| `Q4_G1` a `Q4_G4` | Avaliar o impacto do aumento progressivo da profundidade das relações percorridas. |
+| `Q5` | Encontrar o menor caminho entre dois clientes a partir das conexões formadas por pedidos e produtos. |
 
-A amostragem dinâmica foi utilizada para reduzir o risco de viés por cache, evitando que as consultas fossem executadas sempre sobre os mesmos clientes ou produtos.
+As consultas foram implementadas em SQL para o PostgreSQL e em Cypher para o Neo4j, respeitando a lógica de cada modelo.
+
+---
+
+## Procedimento de benchmark
+
+O benchmark foi executado pelo script `benchmark.py`. O procedimento geral foi:
+
+1. conectar-se ao banco selecionado;
+2. selecionar identificadores existentes na base, como `customer_id` e `product_id`;
+3. executar consultas equivalentes em SQL ou Cypher;
+4. medir o tempo de execução com `time.perf_counter()`;
+5. descartar execuções de aquecimento;
+6. calcular média e desvio-padrão dos tempos;
+7. registrar os resultados em arquivo CSV.
+
+Foram utilizadas execuções de aquecimento para reduzir o efeito da primeira execução sobre os tempos registrados. As consultas mais custosas, como `Q4_G4` e `Q5`, tiveram menor número de repetições para evitar execuções excessivamente longas.
+
+No PostgreSQL, foi utilizado o parâmetro `statement_timeout` para interromper consultas que ultrapassassem o limite definido no experimento.
+
+---
 
 ## Principais resultados
 
-Os resultados indicaram que o PostgreSQL apresentou melhor desempenho em consultas rasas e seletivas, especialmente em cenários nos quais os índices B-Tree e o otimizador relacional conseguiram resolver as junções com baixa latência.
+Os resultados observados no experimento indicaram comportamentos distintos entre os dois bancos.
 
-Por outro lado, o Neo4j apresentou melhor desempenho em consultas de maior profundidade, especialmente em cenários de travessia e descoberta de caminhos, nos quais a estrutura de grafo se mostrou mais adequada à navegação entre entidades conectadas.
+| Cenário | Resultado observado |
+|---|---|
+| Consultas de baixa profundidade | O PostgreSQL apresentou melhor desempenho em consultas como `Q1` e `Q2`. |
+| Consulta híbrida por perfil e geografia | O Neo4j apresentou menor tempo médio na `Q3`. |
+| Aumento progressivo de profundidade | O Neo4j concluiu a variação mais profunda da `Q4`, enquanto o PostgreSQL atingiu timeout. |
+| Caminho mais curto entre clientes | O Neo4j apresentou menor tempo de execução e consulta mais direta em Cypher. |
 
-Dessa forma, os resultados sugerem que o modelo relacional permanece altamente eficiente para consultas de baixa profundidade em bases de tamanho moderado, enquanto o modelo de grafos se torna especialmente adequado para consultas que exigem múltiplos saltos lógicos, descoberta de caminhos e análise de redes altamente conectadas.
+De forma geral, o PostgreSQL mostrou-se eficiente em consultas com relações diretas e bem representadas por chaves e índices. O Neo4j apresentou melhor comportamento nos cenários que exigiram percorrer múltiplas relações ou descobrir caminhos entre entidades.
+
+---
 
 ## Requisitos
 
@@ -169,7 +210,7 @@ Antes de executar o projeto, é necessário ter instalado:
 - Neo4j;
 - Git.
 
-As dependências Python estão listadas no arquivo `requirements.txt`:
+As dependências Python estão listadas em `requirements.txt`:
 
 ```txt
 pandas
@@ -178,56 +219,65 @@ psycopg2-binary
 neo4j
 ```
 
+Para instalar as dependências:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
 ## Configuração dos bancos de dados
 
-O projeto utiliza dois bancos de dados:
+### PostgreSQL
 
-- PostgreSQL;
-- Neo4j.
-
-As credenciais padrão utilizadas pelos scripts são:
+O script `carga_postgres.py` utiliza, por padrão, as seguintes configurações:
 
 ```python
-POSTGRES_CONFIG = {
+conn_params = {
     "host": "localhost",
     "database": "olist_db",
     "user": "postgres",
-    "password": "admin123",
-    "port": "5432"
-}
-
-NEO4J_CONFIG = {
-    "uri": "bolt://localhost:7687",
-    "user": "neo4j",
     "password": "admin123"
 }
 ```
 
-Caso o seu ambiente utilize outro usuário, senha ou nome de banco, você pode alterar as credenciais por variáveis de ambiente.
+Antes de executar a carga, crie o banco de dados `olist_db` e as tabelas esperadas pelo modelo relacional.
 
-### Variáveis de ambiente aceitas
+As tabelas utilizadas pelo script são:
 
-```env
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=olist_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=admin123
+- `clientes`
+- `produtos`
+- `vendedores`
+- `pedidos`
+- `itens_pedido`
 
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=admin123
+Caso seu ambiente utilize outro usuário, senha, host ou nome de banco, altere o dicionário `conn_params` no início do arquivo `src/carga_postgres.py`.
+
+### Neo4j
+
+O script `carga_neo4j.py` utiliza, por padrão:
+
+```python
+uri = "bolt://localhost:7687"
+user = "neo4j"
+password = "admin123"
 ```
 
-Se nenhuma variável de ambiente for definida, os scripts utilizarão os valores padrão apresentados acima.
+Caso seu ambiente utilize outro usuário, senha ou endereço, altere essas variáveis no início do arquivo `src/carga_neo4j.py`.
 
-## Observação sobre caminhos dos arquivos
+---
 
-Os scripts foram configurados para usar caminhos relativos.
+## Configuração dos caminhos dos arquivos
 
-A estrutura recomendada é manter a pasta `data/` na raiz do projeto e os scripts dentro da pasta `src/`.
+Os scripts de carga precisam localizar a pasta `data/`.
 
-Exemplo:
+Se o caminho local do projeto for diferente, ajuste as variáveis de caminho no início dos scripts:
+
+- em `carga_postgres.py`, verifique `base_dir` e `data_path`;
+- em `carga_neo4j.py`, verifique `data_path`.
+
+Recomenda-se manter a estrutura:
 
 ```text
 PROJETO_TCC2/
@@ -235,7 +285,7 @@ PROJETO_TCC2/
 └── src/
 ```
 
-Com essa configuração, os scripts localizam automaticamente os arquivos CSV da Olist a partir da pasta raiz do projeto, sem necessidade de editar caminhos absolutos no código.
+---
 
 ## Como executar
 
@@ -246,15 +296,15 @@ git clone https://github.com/seu-usuario/nome-do-repositorio.git
 cd nome-do-repositorio
 ```
 
-### 2. Baixar o dataset
+### 2. Baixar e organizar o dataset
 
 Baixe o dataset da Olist no Kaggle:
 
 https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 
-Depois, extraia os arquivos `.csv` e coloque todos eles dentro da pasta `data/`.
+Extraia os arquivos `.csv` e coloque-os dentro da pasta `data/`.
 
-### 3. Criar ambiente virtual
+### 3. Criar e ativar ambiente virtual
 
 ```bash
 python -m venv venv
@@ -278,27 +328,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5. Preparar o banco PostgreSQL
+### 5. Preparar o PostgreSQL
 
-Antes de executar a carga, crie o banco de dados `olist_db` no PostgreSQL.
+Crie o banco de dados `olist_db` e as tabelas do modelo relacional.
 
-Também é necessário criar previamente as tabelas esperadas pelos scripts, conforme o modelo relacional desenvolvido no projeto.
-
-As tabelas utilizadas pelo script de carga são:
-
-- `clientes`
-- `produtos`
-- `vendedores`
-- `pedidos`
-- `itens_pedido`
-
-### 6. Executar a carga no PostgreSQL
+Em seguida, execute:
 
 ```bash
 python src/carga_postgres.py
 ```
 
-### 7. Executar a carga no Neo4j
+### 6. Preparar o Neo4j
 
 Certifique-se de que o Neo4j esteja em execução e acessível em:
 
@@ -312,7 +352,7 @@ Depois execute:
 python src/carga_neo4j.py
 ```
 
-### 8. Executar o benchmark
+### 7. Executar o benchmark
 
 Para executar o benchmark no PostgreSQL:
 
@@ -326,24 +366,46 @@ Para executar o benchmark no Neo4j:
 python src/benchmark.py neo4j
 ```
 
-Ao final da execução, os resultados serão salvos em arquivos `.csv`, como:
+Ao final, serão gerados arquivos CSV com os resultados:
 
 ```text
-src/resultado_final_postgres.csv
-src/resultado_final_neo4j.csv
+resultado_final_postgres.csv
+resultado_final_neo4j.csv
 ```
 
-## Documentação
+---
 
-Este repositório pode incluir materiais complementares do projeto, como:
+## Saída dos resultados
+
+Cada arquivo de resultado contém colunas semelhantes a:
+
+```text
+Banco,Consulta,Media_ms,Desvio_ms
+```
+
+Onde:
+
+- `Banco`: banco avaliado;
+- `Consulta`: consulta executada;
+- `Media_ms`: tempo médio em milissegundos;
+- `Desvio_ms`: desvio-padrão em milissegundos.
+
+Quando uma consulta não é concluída dentro do limite definido, o resultado pode ser registrado sem média válida.
+
+---
+
+## Documentação complementar
+
+Este repositório pode incluir materiais complementares, como:
 
 - versão final do TCC;
 - diagramas de modelagem;
-- scripts SQL;
-- scripts Cypher;
-- consultas utilizadas no benchmark;
-- resultados experimentais;
+- consultas SQL;
+- consultas Cypher;
+- arquivos de resultados experimentais;
 - documentação auxiliar.
+
+---
 
 ## Autor
 
@@ -352,14 +414,21 @@ Curso de Engenharia de Software
 Universidade Tecnológica Federal do Paraná — UTFPR  
 Campus Cornélio Procópio
 
+---
+
 ## Orientador
 
 **Prof. Dr. Eduardo Cotrin Teixeira**
 
-## Licença
-
-Este projeto foi desenvolvido para fins acadêmicos. O uso, reprodução ou adaptação dos códigos e materiais deve citar a autoria original.
+---
 
 ## Referência acadêmica
 
-CARVALHO, Álison Christian Rebouças Vidal de. **Comparação prática entre modelagem relacional e modelagem em grafos para consultas de recomendação em e-commerce**. Trabalho de Conclusão de Curso — Engenharia de Software, Universidade Tecnológica Federal do Paraná, Cornélio Procópio, 2026.
+CARVALHO, Álison Christian Rebouças Vidal de. **Análise Comparativa de Bancos de Dados Relacionais e Orientados a Grafos para Sistemas de Recomendação em E-commerce**. Trabalho de Conclusão de Curso — Engenharia de Software, Universidade Tecnológica Federal do Paraná, Cornélio Procópio, 2026.
+
+---
+
+## Licença
+
+Este projeto foi desenvolvido para fins acadêmicos. O uso, reprodução ou adaptação dos códigos e materiais deve citar a autoria original.
+````
